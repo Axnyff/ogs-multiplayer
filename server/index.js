@@ -8,7 +8,6 @@ const { Pool } = require('pg');
 
 let pool;
 
-let client;
 if (process.env.DATABASE_URL) {
   pool= new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -91,6 +90,7 @@ app.post("/api/index", async (req, res) => {
     }
     res.json(null);
   }
+  client.release();
 });
 
 app.post("/api/move", async (req, res) => {
@@ -122,6 +122,7 @@ app.post("/api/move", async (req, res) => {
     ]);
     res.json({ done: true });
   }
+  client.release();
 });
 
 app.get("/api/moves", async (req, res) => {
@@ -152,6 +153,7 @@ app.get("/api/moves", async (req, res) => {
       res.json({ moves: null });
     }
   }
+  client.release();
 });
 
 app.get("/api/SECRET_ADMIN", (req, res) => {
