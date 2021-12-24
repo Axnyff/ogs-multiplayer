@@ -4,16 +4,16 @@ const uuid = require("node-uuid");
 const bodyParser = require("body-parser");
 const session = require("cookie-session");
 const app = express();
-const { Pool } = require('pg');
+const { Pool } = require("pg");
 
 let pool;
 
 if (process.env.DATABASE_URL) {
-  pool= new Pool({
+  pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
-      rejectUnauthorized: false
-    }
+      rejectUnauthorized: false,
+    },
   });
 } else {
   pool = new Pool({
@@ -150,7 +150,7 @@ app.get("/api/moves", async (req, res) => {
       );
       res.json({ moves: output, lastMove: result.rows[0].lastmove });
     } else {
-      res.json({ moves: null });
+      res.json({ moves: null, lastMove: null });
     }
   }
   client.release();
