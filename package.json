@@ -27,7 +27,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "serve": "node server/indeX.js"
+    "serve": "node server/index.js"
   },
   "eslintConfig": {
     "extends": [
