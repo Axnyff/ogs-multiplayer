@@ -4,16 +4,20 @@ const uuid = require("node-uuid");
 const bodyParser = require("body-parser");
 const session = require("cookie-session");
 const app = express();
-const { Client } = require("pg");
+const { Pool } = require('pg');
+
+let pool;
 
 let client;
 if (process.env.DATABASE_URL) {
-  client = new Client({
+  pool= new Pool({
     connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false
+    }
   });
-
 } else {
-  client = new Client({
+  pool = new Pool({
     user: "dbuser",
     host: "localhost",
     database: "db",
@@ -22,7 +26,6 @@ if (process.env.DATABASE_URL) {
   });
 }
 
-client.connect();
 const sess = {
   keys: [process.env.COOKIE_KEY || "RANDOLM"],
   httpOnly: false,
@@ -66,6 +69,7 @@ app.post("/api/level", (req, res) => {
 });
 
 app.post("/api/index", async (req, res) => {
+  const client = await pool.connect();
   const { gameIndex, lastMove } = req.body;
   if (!req.session.isAdmin || !gameIndex || lastMove === undefined) {
     res.json(null);
@@ -91,6 +95,7 @@ app.post("/api/index", async (req, res) => {
 
 app.post("/api/move", async (req, res) => {
   const { gameId, move } = req.body;
+  const client = await pool.connect();
   const result = await client.query(
     "Select lastMove from game where gameId = $1",
     [gameId]
@@ -121,6 +126,7 @@ app.post("/api/move", async (req, res) => {
 
 app.get("/api/moves", async (req, res) => {
   const gameIndex = req.query.gameIndex;
+  const client = await pool.connect();
   if (!req.session.isAdmin || !gameIndex) {
     res.json({ moves: null });
   } else {
