@@ -6,13 +6,21 @@ const session = require("cookie-session");
 const app = express();
 const { Client } = require("pg");
 
-const client = new Client({
-  user: "dbuser",
-  host: "localhost",
-  database: "db",
-  password: "password",
-  port: 5433,
-});
+let client;
+if (process.env.DATABASE_URL) {
+  client = new Client({
+    connectionString: process.env.DATABASE_URL,
+  });
+
+} else {
+  client = new Client({
+    user: "dbuser",
+    host: "localhost",
+    database: "db",
+    password: "password",
+    port: 5433,
+  });
+}
 
 client.connect();
 const sess = {
