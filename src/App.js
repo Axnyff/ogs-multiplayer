@@ -131,8 +131,8 @@ function App() {
         }
       });
     });
-    if (dataMoves?.moves[0]) {
-      markers[dataMoves.moves[0][0]] = "square";
+    if (dataMoves?.moves?.[0]) {
+      markers[dataMoves?.moves[0]?.[0]] = "square";
     }
     if (value) {
       markers[value] = "triangle";
@@ -140,48 +140,61 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <div className="goban-container">
-        {stones && (
-          <div className="flex flex-center">
-            <Goban
-              size={dataBoard?.width}
-              onIntersectionClick={el => {
-                setValue(el);
-              }}
-              stones={stones}
-              markers={markers}
-            />
-            <div className="margin">
-              <h3>Captures</h3>
-              <div className="flex margin flex-center">
-                <i className="capture black" />
-                <div className="nb-capture">{dataBoard._captures[1]}</div>
-              </div>
-              <div className="flex margin flex-center">
-                <i className="capture white" />
-                <div className="nb-capture">{dataBoard._captures[0]}</div>
+    <>
+      {dataBoard?.victoryText && <h2>{dataBoard.victoryText}</h2>}
+      <div className="App">
+        <div className="goban-container">
+          {stones && (
+            <div className="flex flex-center">
+              <Goban
+                size={dataBoard?.width}
+                onIntersectionClick={(el) => {
+                  setValue(el);
+                }}
+                stones={stones}
+                markers={markers}
+              />
+              <div className="margin">
+                {dataBoard?.komi && <span>Komi: {dataBoard.komi}</span>}
+                <h3>Captures</h3>
+                <div className="flex margin flex-center">
+                  <i className="capture black" />
+                  <div className="nb-capture">{dataBoard._captures[1]}</div>
+                </div>
+                <div className="flex margin flex-center">
+                  <i className="capture white" />
+                  <div className="nb-capture">{dataBoard._captures[0]}</div>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-      <div>
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="moveId">Entrez un coup</label>
+          )}
+        </div>
+        <div>
+          <form onSubmit={handleSubmit}>
+            <label htmlFor="moveId">Entrez un coup</label>
+            <br />
+            <input
+              id="moveId"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+            />
+            <button type="submit">Valider</button>
+            <br />
+            <div className="flex">
+              <button type="button" onClick={() => setValue("Pass")}>
+                Passer
+              </button>
+              <button type="button" onClick={() => setValue("Resign")}>
+                Abandonner
+              </button>
+            </div>
+          </form>
           <br />
-          <input
-            id="moveId"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-          />
-          <button type="submit">Valider</button>
-        </form>
-        <br />
-        <br />
-        {data.isAdmin && <Admin moves={dataMoves} />}
+          <br />
+          {data.isAdmin && <Admin moves={dataMoves} />}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
