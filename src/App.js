@@ -114,8 +114,8 @@ function App() {
     dataBoard.signMap.forEach((row, indexRow) => {
       row.forEach((pos, indexColumn) => {
         if (pos !== 0) {
-          const coord = getLetter(indexColumn) + (19 - indexRow);
-          if (indexRow === dataBoard.lastMove[0] && indexColumn === dataBoard.lastMove[1]) {
+          const coord = getLetter(indexColumn) + (dataBoard.width - indexRow);
+          if (indexRow === dataBoard.lastMove[1] && indexColumn === dataBoard.lastMove[0]) {
             markers[coord] = "circle";
           }
           stones[coord] = pos === 1 ? "black" : "white";
@@ -126,6 +126,7 @@ function App() {
       markers[dataMoves.moves[0][0]] = "square";
     }
   }
+
   return (
     <div className="App">
       <div className="goban-container">
