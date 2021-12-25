@@ -134,6 +134,9 @@ function App() {
     if (dataMoves?.moves[0]) {
       markers[dataMoves.moves[0][0]] = "square";
     }
+    if (value) {
+      markers[value] = "triangle";
+    }
   }
 
   return (
@@ -143,7 +146,9 @@ function App() {
           <div className="flex flex-center">
             <Goban
               size={dataBoard?.width}
-              onIntersectionClick={setValue}
+              onIntersectionClick={el => {
+                setValue(el);
+              }}
               stones={stones}
               markers={markers}
             />
