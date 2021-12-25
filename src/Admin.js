@@ -1,19 +1,14 @@
 import request from "./request";
-import { useQuery, useMutation, useQueryClient } from "react-query";
+import { useMutation, useQueryClient } from "react-query";
 
 export const baseUrl =
   process.env.NODE_ENV === "development" ? "http://localhost:3010/api" : "/api";
 
-const Admin = () => {
+const Admin = ({ moves }) => {
   const queryClient = useQueryClient();
   const search = document.location.search;
   const match = search.match(/game=(\d+)/);
   const gameIndex = match && match[1];
-  const { data } = useQuery(["moves"], () => {
-    return request(`${baseUrl}/moves?gameIndex=${gameIndex}`);
-  }, {
-    refetchInterval: 500,
-  });
   const { mutateAsync: setIndex } = useMutation(
     (lastMove) =>
       request(`${baseUrl}/index`, {
@@ -30,15 +25,15 @@ const Admin = () => {
     }
   );
 
-  if (!data) {
+  if (!moves) {
     return null;
   }
   return (
     <div>
-      {data.lastMove !== null ? (
+      {moves.lastMove !== null ? (
         <>
-          <div>Coup numéro: {data.lastMove}</div>
-          <button type="button" onClick={() => setIndex(data.lastMove + 1)}>
+          <div>Coup numéro: {moves.lastMove}</div>
+          <button type="button" onClick={() => setIndex(moves.lastMove + 1)}>
             Coup suivant
           </button>
         </>
@@ -47,11 +42,11 @@ const Admin = () => {
           Créer la partie
         </button>
       )}
-      {data.moves && (
+      {moves.moves && (
         <>
           <div>Liste des coups</div>
           <ul>
-            {data.moves.map(([move, count]) => (
+            {moves.moves.map(([move, count]) => (
               <li key={move}>
                 {move} ({count})
               </li>

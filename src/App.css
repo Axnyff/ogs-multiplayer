@@ -1,6 +1,12 @@
 .App {
   display: flex;
 }
-iframe {
+
+.goban-container {
+  max-width: 50%;
   margin-right: 50px;
+}
+
+.stone {
+  cursor: pointer;
 }

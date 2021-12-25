@@ -1,6 +1,7 @@
 CREATE TABLE GAME(
   gameId VARCHAR PRIMARY KEY,
-  lastMove Int
+  lastMove Int,
+  sgf VARCHAR
 );
 
 CREATE TABLE MOVE(

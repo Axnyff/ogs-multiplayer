@@ -1,10 +1,13 @@
 const express = require("express");
+const fetch = require('node-fetch');
 const _ = require("lodash");
 const uuid = require("node-uuid");
 const bodyParser = require("body-parser");
 const session = require("cookie-session");
 const app = express();
 const { Pool } = require("pg");
+const readSgf = require('./readSgf');
+
 
 let pool;
 
@@ -61,6 +64,26 @@ app.get("/api/loggedIn", (req, res) => {
   });
 });
 
+app.get("/api/board", async (req, res) => {
+  const gameIndex = req.query.gameIndex;
+  const client = await pool.connect();
+  if (gameIndex) {
+    const result = await client.query(
+      "select sgf from game where gameId = $1",
+      [gameIndex]
+    );
+    if (result.rows.length) {
+      const sgfText = result.rows[0].sgf;
+      res.json(readSgf(sgfText));
+    } else {
+      res.json(null);
+    }
+  } else {
+    res.json(null);
+  }
+  client.release();
+});
+
 app.post("/api/level", (req, res) => {
   req.session.level = req.body.level;
   req.session.uuid = uuid();
@@ -78,14 +101,19 @@ app.post("/api/index", async (req, res) => {
       [gameIndex]
     );
     if (result.rows.length >= 1) {
-      const result = await client.query(
-        "UPDATE game set lastmove=$1 where gameId = $2",
-        [lastMove, gameIndex]
+      const result = await fetch(`https://online-go.com/api/v1/games/${gameIndex}/sgf`);
+      const sgfText = (await result.text());
+      await client.query(
+        "UPDATE game set lastmove=$1, sgf=$3 where gameId = $2",
+        [lastMove, gameIndex, sgfText]
       );
     } else {
-      const result = await client.query("INSERT INTO game VALUES ($2, $1)", [
+      const result = await fetch(`https://online-go.com/api/v1/games/${gameIndex}/sgf`);
+      const sgfText = (await result.text());
+      await client.query("INSERT INTO game VALUES ($2, $1, $3)", [
         lastMove,
         gameIndex,
+        sgfText,
       ]);
     }
     res.json(null);
@@ -164,4 +192,3 @@ app.get("/api/SECRET_ADMIN", (req, res) => {
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);
 });
-express;

@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@sabaki/go-board": "^1.4.3",
+    "@sabaki/immutable-gametree": "^1.9.4",
+    "@sabaki/sgf": "^3.4.7",
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
@@ -12,11 +15,13 @@
     "express": "^4.17.2",
     "express-session": "^1.17.2",
     "lodash": "^4.17.21",
+    "node-fetch": "2",
     "node-uuid": "^1.4.8",
     "nodemon": "^2.0.15",
     "pg": "^8.7.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-goban": "^1.0.0",
     "react-query": "^3.34.6",
     "react-scripts": "5.0.0",
     "web-vitals": "^2.1.2"

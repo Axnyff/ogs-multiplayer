@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Goban from "./goban";
 import request from "./request";
 import { useQuery, useQueryClient, useMutation } from "react-query";
 import "./App.css";
@@ -9,11 +10,24 @@ export const baseUrl =
 
 function App() {
   const { data } = useQuery(["logged"], () => request(`${baseUrl}/loggedIn`));
-  const queryClient = useQueryClient();
-  const [value, setValue] = useState("");
+  const { data: dataMoves } = useQuery(["moves", data?.isAdmin], () => {
+    if (data?.isAdmin) {
+      return request(`${baseUrl}/moves?gameIndex=${gameIndex}`);
+    }
+    return undefined;
+  }, {
+    refetchInterval: 500,
+  });
   const search = document.location.search;
   const match = search.match(/game=(\d+)/);
   const gameIndex = match && match[1];
+  const { data: dataBoard } = useQuery(["board"], () =>
+    request(`${baseUrl}/board?gameIndex=${gameIndex}`)
+  , {
+    refetchInterval: 500,
+  });
+  const queryClient = useQueryClient();
+  const [value, setValue] = useState("");
 
   const { mutateAsync: makeMove } = useMutation(
     () => {
@@ -29,7 +43,7 @@ function App() {
 
     {
       onSuccess: () => {
-        queryClient.refetchQueries("moves", { force: true});
+        queryClient.refetchQueries("moves", { force: true });
       },
     }
   );
@@ -84,15 +98,46 @@ function App() {
     makeMove();
     setValue("");
   };
+  let stones;
+  let markers;
+
+  const getLetter = (indexRow) => {
+    if (indexRow > 7) {
+      indexRow = indexRow + 1;
+    }
+    return String.fromCharCode(65 + indexRow);
+  };
+
+  if (dataBoard) {
+    stones = {};
+    markers = {};
+    dataBoard.signMap.forEach((row, indexRow) => {
+      row.forEach((pos, indexColumn) => {
+        if (pos !== 0) {
+          const coord = getLetter(indexColumn) + (19 - indexRow);
+          if (indexRow === dataBoard.lastMove[0] && indexColumn === dataBoard.lastMove[1]) {
+            markers[coord] = "circle";
+          }
+          stones[coord] = pos === 1 ? "black" : "white";
+        }
+      });
+    });
+    if (dataMoves?.moves[0]) {
+      markers[dataMoves.moves[0][0]] = "square";
+    }
+  }
   return (
     <div className="App">
-      <iframe
-        title="OGS"
-        frameBorder="no"
-        height="800px"
-        width="1000px"
-        src={`https://online-go.com/game/${gameIndex}`}
-      />
+      <div className="goban-container">
+        {stones && (
+          <Goban
+            size={dataBoard?.width}
+            onIntersectionClick={setValue}
+            stones={stones}
+            markers={markers}
+          />
+        )}
+      </div>
       <div>
         <form onSubmit={handleSubmit}>
           <label htmlFor="moveId">Entrez un coup</label>
@@ -106,7 +151,7 @@ function App() {
         </form>
         <br />
         <br />
-        {data.isAdmin && <Admin />}
+        {data.isAdmin && <Admin moves={dataMoves}/>}
       </div>
     </div>
   );
