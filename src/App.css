@@ -1,5 +1,9 @@
-.App {
+.App, .flex {
   display: flex;
+}
+
+.flex-center {
+  align-items: center;
 }
 
 .goban-container {
@@ -9,4 +13,31 @@
 
 .stone {
   cursor: pointer;
+}
+
+
+.capture {
+  width: 40px;
+  height: 40px;
+  display: inline-block;
+  border-radius: 100%;
+}
+
+.nb-capture {
+  margin-left: 5px;
+  font-size: 20px;
+  font-weight: bold;
+}
+.margin {
+  margin: 8px;
+}
+
+.capture.black {
+  background-color: rgb(75, 75, 75);
+  background-image: radial-gradient(circle at 0%, black, rgb(75, 75, 75) 100%);
+}
+
+.capture.white {
+  background-color: rgb(180, 180, 180);
+  background-image: radial-gradient(circle at 0%, white, rgb(180, 180, 180) 100%);
 }

@@ -10,22 +10,28 @@ export const baseUrl =
 
 function App() {
   const { data } = useQuery(["logged"], () => request(`${baseUrl}/loggedIn`));
-  const { data: dataMoves } = useQuery(["moves", data?.isAdmin], () => {
-    if (data?.isAdmin) {
-      return request(`${baseUrl}/moves?gameIndex=${gameIndex}`);
+  const { data: dataMoves } = useQuery(
+    ["moves", data?.isAdmin],
+    () => {
+      if (data?.isAdmin) {
+        return request(`${baseUrl}/moves?gameIndex=${gameIndex}`);
+      }
+      return undefined;
+    },
+    {
+      refetchInterval: 500,
     }
-    return undefined;
-  }, {
-    refetchInterval: 500,
-  });
+  );
   const search = document.location.search;
   const match = search.match(/game=(\d+)/);
   const gameIndex = match && match[1];
-  const { data: dataBoard } = useQuery(["board"], () =>
-    request(`${baseUrl}/board?gameIndex=${gameIndex}`)
-  , {
-    refetchInterval: 500,
-  });
+  const { data: dataBoard } = useQuery(
+    ["board"],
+    () => request(`${baseUrl}/board?gameIndex=${gameIndex}`),
+    {
+      refetchInterval: 500,
+    }
+  );
   const queryClient = useQueryClient();
   const [value, setValue] = useState("");
 
@@ -115,7 +121,10 @@ function App() {
       row.forEach((pos, indexColumn) => {
         if (pos !== 0) {
           const coord = getLetter(indexColumn) + (dataBoard.width - indexRow);
-          if (indexRow === dataBoard.lastMove[1] && indexColumn === dataBoard.lastMove[0]) {
+          if (
+            indexRow === dataBoard.lastMove[1] &&
+            indexColumn === dataBoard.lastMove[0]
+          ) {
             markers[coord] = "circle";
           }
           stones[coord] = pos === 1 ? "black" : "white";
@@ -131,12 +140,25 @@ function App() {
     <div className="App">
       <div className="goban-container">
         {stones && (
-          <Goban
-            size={dataBoard?.width}
-            onIntersectionClick={setValue}
-            stones={stones}
-            markers={markers}
-          />
+          <div className="flex flex-center">
+            <Goban
+              size={dataBoard?.width}
+              onIntersectionClick={setValue}
+              stones={stones}
+              markers={markers}
+            />
+            <div className="margin">
+              <h3>Captures</h3>
+              <div className="flex margin flex-center">
+                <i className="capture black" />
+                <div className="nb-capture">{dataBoard._captures[1]}</div>
+              </div>
+              <div className="flex margin flex-center">
+                <i className="capture white" />
+                <div className="nb-capture">{dataBoard._captures[0]}</div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
       <div>
@@ -152,7 +174,7 @@ function App() {
         </form>
         <br />
         <br />
-        {data.isAdmin && <Admin moves={dataMoves}/>}
+        {data.isAdmin && <Admin moves={dataMoves} />}
       </div>
     </div>
   );

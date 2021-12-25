@@ -37,7 +37,7 @@ const readSgf = (sgfStr) => {
     }
     current = current.children[0];
   }
-  return { signMap: board.signMap, lastMove, width: board.width};
+  return { ...board, lastMove };
 };
 
 module.exports = readSgf;
