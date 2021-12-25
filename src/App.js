@@ -139,6 +139,7 @@ function App() {
     }
   }
 
+  console.log("wat");
   return (
     <>
       {dataBoard?.victoryText && <h2>{dataBoard.victoryText}</h2>}
@@ -158,14 +159,14 @@ function App() {
             <div className="flex flex-center">
               <i className="capture black" />
               <div>
-                <strong>{dataBoard.black}</strong>
+                <strong>{dataBoard.lastPlayer === "B" && "➡️   "}{dataBoard.black}</strong>
                 <div>Captures: {dataBoard._captures[0]}</div>
               </div>
             </div>
             <div className="flex flex-center">
               <i className="capture white" />
               <div>
-                <strong>{dataBoard.white}</strong>
+                <strong>{dataBoard.lastPlayer === "W" && "➡️  "}{dataBoard.white}</strong>
                 <div>Captures: {dataBoard._captures[1]}</div>
               </div>
             </div>

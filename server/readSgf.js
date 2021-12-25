@@ -38,15 +38,18 @@ const readSgf = (sgfStr) => {
     !!current.data?.RE.length && parseVictoryText(current.data.RE[0]);
 
   let lastMove;
+  let lastPlayer;
   while (current?.children) {
     let { data } = current;
     if (data.W) {
+      lastPlayer = "W";
       const move = data.W[0];
       const vertex = move.split("").map((letter) => letter.charCodeAt(0) - 97);
       lastMove = vertex;
       board = board.makeMove(-1, vertex);
     }
     if (data.B) {
+      lastPlayer = "B";
       const move = data.B[0];
       const vertex = move.split("").map((letter) => letter.charCodeAt(0) - 97);
       lastMove = vertex;
@@ -54,7 +57,7 @@ const readSgf = (sgfStr) => {
     }
     current = current.children[0];
   }
-  return { ...board, lastMove, victoryText, komi: root.data.KM?.[0], black: root.data.PB[0], white: root.data.PW[0] };
+  return { ...board, lastMove, victoryText, komi: root.data.KM?.[0], black: root.data.PB[0], white: root.data.PW[0], lastPlayer};
 };
 
 module.exports = readSgf;
