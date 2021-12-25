@@ -1,4 +1,4 @@
-.App, .flex {
+.flex {
   display: flex;
 }
 
@@ -19,6 +19,7 @@
 .capture {
   width: 40px;
   height: 40px;
+  margin-right: 5px;
   display: inline-block;
   border-radius: 100%;
 }
@@ -30,6 +31,13 @@
 }
 .margin {
   margin: 8px;
+}
+.margin-bottom {
+  margin-bottom: 32px;
+}
+
+.margin-around {
+  margin: 16px 0;
 }
 
 .capture.black {

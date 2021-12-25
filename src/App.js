@@ -142,58 +142,57 @@ function App() {
   return (
     <>
       {dataBoard?.victoryText && <h2>{dataBoard.victoryText}</h2>}
-      <div className="App">
-        <div className="goban-container">
-          {stones && (
+      {stones && (
+        <div className="flex">
+          <div className="goban-container">
+            <Goban
+              size={dataBoard?.width}
+              onIntersectionClick={(el) => {
+                setValue(el);
+              }}
+              stones={stones}
+              markers={markers}
+            />
+          </div>
+          <div className="margin">
             <div className="flex flex-center">
-              <Goban
-                size={dataBoard?.width}
-                onIntersectionClick={(el) => {
-                  setValue(el);
-                }}
-                stones={stones}
-                markers={markers}
-              />
-              <div className="margin">
-                {dataBoard?.komi && <span>Komi: {dataBoard.komi}</span>}
-                <h3>Captures</h3>
-                <div className="flex margin flex-center">
-                  <i className="capture black" />
-                  <div className="nb-capture">{dataBoard._captures[1]}</div>
-                </div>
-                <div className="flex margin flex-center">
-                  <i className="capture white" />
-                  <div className="nb-capture">{dataBoard._captures[0]}</div>
-                </div>
+              <i className="capture black" />
+              <div>
+                <strong>{dataBoard.black}</strong>
+                <div>Captures: {dataBoard._captures[0]}</div>
               </div>
             </div>
-          )}
-        </div>
-        <div>
-          <form onSubmit={handleSubmit}>
-            <label htmlFor="moveId">Entrez un coup</label>
-            <br />
-            <input
-              id="moveId"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-            />
-            <button type="submit">Valider</button>
-            <br />
-            <div className="flex">
-              <button type="button" onClick={() => setValue("Pass")}>
-                Passer
-              </button>
-              <button type="button" onClick={() => setValue("Resign")}>
-                Abandonner
-              </button>
+            <div className="flex flex-center">
+              <i className="capture white" />
+              <div>
+                <strong>{dataBoard.white}</strong>
+                <div>Captures: {dataBoard._captures[1]}</div>
+              </div>
             </div>
-          </form>
-          <br />
-          <br />
-          {data.isAdmin && <Admin moves={dataMoves} />}
+            <div className="margin-around">Komi: {dataBoard.komi}</div>
+            <form className="margin-bottom" onSubmit={handleSubmit}>
+              <label htmlFor="moveId">Entrez un coup</label>
+              <br />
+              <input
+                id="moveId"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+              />
+              <button type="submit">Valider</button>
+              <br />
+              <div className="flex">
+                <button type="button" onClick={() => setValue("Pass")}>
+                  Passer
+                </button>
+                <button type="button" onClick={() => setValue("Resign")}>
+                  Abandonner
+                </button>
+              </div>
+            </form>
+        {data.isAdmin && <Admin moves={dataMoves} />}
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }
