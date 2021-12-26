@@ -139,12 +139,11 @@ function App() {
     }
   }
 
-  console.log("wat");
   return (
     <>
       {dataBoard?.victoryText && <h2>{dataBoard.victoryText}</h2>}
-      {stones && (
-        <div className="flex">
+      <div className="flex">
+        {dataBoard && (
           <div className="goban-container">
             <Goban
               size={dataBoard?.width}
@@ -155,44 +154,55 @@ function App() {
               markers={markers}
             />
           </div>
-          <div className="margin">
-            <div className="flex flex-center">
-              <i className="capture black" />
-              <div>
-                <strong>{dataBoard.lastPlayer === "B" && "➡️   "}{dataBoard.black}</strong>
-                <div>Captures: {dataBoard._captures[0]}</div>
+        )}
+        <div className="margin">
+          {dataBoard && (
+            <>
+              <div className="flex flex-center">
+                <i className="capture black" />
+                <div>
+                  <strong>
+                    {dataBoard.lastPlayer === "B" && "➡️   "}
+                    {dataBoard.black}
+                  </strong>
+                  <div>Captures: {dataBoard._captures[0]}</div>
+                </div>
               </div>
-            </div>
-            <div className="flex flex-center">
-              <i className="capture white" />
-              <div>
-                <strong>{dataBoard.lastPlayer === "W" && "➡️  "}{dataBoard.white}</strong>
-                <div>Captures: {dataBoard._captures[1]}</div>
+              <div className="flex flex-center">
+                <i className="capture white" />
+                <div>
+                  <strong>
+                    {dataBoard.lastPlayer === "W" && "➡️  "}
+                    {dataBoard.white}
+                  </strong>
+                  <div>Captures: {dataBoard._captures[1]}</div>
+                </div>
               </div>
-            </div>
-            <div className="margin-around">Komi: {dataBoard.komi}</div>
-            <form className="margin-bottom" onSubmit={handleSubmit}>
-              <label htmlFor="moveId">Entrez un coup</label>
-              <br />
-              <input
-                id="moveId"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-              />
-              <button type="submit">Valider</button>
-              <br />
-              <div className="flex">
-                <button type="button" onClick={() => setValue("Pass")}>
-                  Passer
-                </button>
-                <button type="button" onClick={() => setValue("Resign")}>
-                  Abandonner
-                </button>
-              </div>
-            </form>
-        {data.isAdmin && <Admin moves={dataMoves} />}
-          </div>
+              <div className="margin-around">Komi: {dataBoard.komi}</div>
+              <form className="margin-bottom" onSubmit={handleSubmit}>
+                <label htmlFor="moveId">Entrez un coup</label>
+                <br />
+                <input
+                  id="moveId"
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                />
+                <button type="submit">Valider</button>
+                <br />
+                <div className="flex">
+                  <button type="button" onClick={() => setValue("Pass")}>
+                    Passer
+                  </button>
+                  <button type="button" onClick={() => setValue("Resign")}>
+                    Abandonner
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
+          {data.isAdmin && <Admin moves={dataMoves} />}
         </div>
+      </div>
       )}
     </>
   );
