@@ -203,7 +203,6 @@ function App() {
           {data.isAdmin && <Admin moves={dataMoves} />}
         </div>
       </div>
-      )}
     </>
   );
 }
