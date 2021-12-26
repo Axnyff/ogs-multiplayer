@@ -1,13 +1,12 @@
 const express = require("express");
-const fetch = require('node-fetch');
+const fetch = require("node-fetch");
 const _ = require("lodash");
 const uuid = require("node-uuid");
 const bodyParser = require("body-parser");
 const session = require("cookie-session");
 const app = express();
 const { Pool } = require("pg");
-const readSgf = require('./readSgf');
-
+const readSgf = require("./readSgf");
 
 let pool;
 
@@ -74,7 +73,11 @@ app.get("/api/board", async (req, res) => {
     );
     if (result.rows.length) {
       const sgfText = result.rows[0].sgf;
-      res.json(readSgf(sgfText));
+      try {
+        res.json(readSgf(sgfText));
+      } catch (e) {
+        res.json(null);
+      }
     } else {
       res.json(null);
     }
@@ -101,15 +104,19 @@ app.post("/api/index", async (req, res) => {
       [gameIndex]
     );
     if (result.rows.length >= 1) {
-      const result = await fetch(`https://online-go.com/api/v1/games/${gameIndex}/sgf`);
-      const sgfText = (await result.text());
+      const result = await fetch(
+        `https://online-go.com/api/v1/games/${gameIndex}/sgf`
+      );
+      const sgfText = await result.text();
       await client.query(
         "UPDATE game set lastmove=$1, sgf=$3 where gameId = $2",
         [lastMove, gameIndex, sgfText]
       );
     } else {
-      const result = await fetch(`https://online-go.com/api/v1/games/${gameIndex}/sgf`);
-      const sgfText = (await result.text());
+      const result = await fetch(
+        `https://online-go.com/api/v1/games/${gameIndex}/sgf`
+      );
+      const sgfText = await result.text();
       await client.query("INSERT INTO game VALUES ($2, $1, $3)", [
         lastMove,
         gameIndex,
