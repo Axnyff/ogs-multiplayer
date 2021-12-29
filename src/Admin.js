@@ -1,8 +1,6 @@
 import request from "./request";
+import { baseUrl } from './config';
 import { useMutation, useQueryClient } from "react-query";
-
-export const baseUrl =
-  process.env.NODE_ENV === "development" ? "http://localhost:3010/api" : "/api";
 
 const Admin = ({ moves }) => {
   const queryClient = useQueryClient();

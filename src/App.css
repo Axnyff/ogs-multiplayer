@@ -15,7 +15,6 @@
   cursor: pointer;
 }
 
-
 .capture {
   width: 40px;
   height: 40px;
@@ -47,5 +46,17 @@
 
 .capture.white {
   background-color: rgb(180, 180, 180);
-  background-image: radial-gradient(circle at 0%, white, rgb(180, 180, 180) 100%);
+  background-image: radial-gradient(
+    circle at 0%,
+    white,
+    rgb(180, 180, 180) 100%
+  );
+}
+
+.level-form {
+  max-width: 200px;
+}
+
+.level-form > #level {
+  margin-bottom: 10px;
 }

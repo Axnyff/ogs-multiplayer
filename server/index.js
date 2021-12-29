@@ -28,7 +28,7 @@ if (process.env.DATABASE_URL) {
 }
 
 const sess = {
-  keys: [process.env.COOKIE_KEY || "RANDOLM"],
+  keys: [process.env.COOKIE_KEY || "RANDOM3"],
   httpOnly: false,
   sameSite: "none",
   maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
@@ -90,7 +90,7 @@ app.get("/api/board", async (req, res) => {
 app.post("/api/level", (req, res) => {
   req.session.level = req.body.level;
   req.session.uuid = uuid();
-  res.send("Ok");
+  res.json({});
 });
 
 app.post("/api/index", async (req, res) => {
@@ -172,7 +172,7 @@ app.get("/api/moves", async (req, res) => {
     );
     if (result.rows.length >= 1) {
       const result2 = await client.query(
-        "Select move from move where gameId = $1 and moveNumber = $2",
+        "Select move from move where gameId = $1 and moveNumber = $2 AND TO_NUMBER(level, '99') >= 15",
         [gameIndex, result.rows[0].lastmove]
       );
       const moves = result2.rows.map((el) => el.move);

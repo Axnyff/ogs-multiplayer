@@ -4,9 +4,8 @@ import request from "./request";
 import { useQuery, useQueryClient, useMutation } from "react-query";
 import "./App.css";
 import Admin from "./Admin";
-
-export const baseUrl =
-  process.env.NODE_ENV === "development" ? "http://localhost:3010/api" : "/api";
+import LevelSelector from './LevelSelector';
+import { baseUrl } from './config';
 
 function App() {
   const { data } = useQuery(["logged"], () => request(`${baseUrl}/loggedIn`));
@@ -54,51 +53,19 @@ function App() {
     }
   );
 
-  const { mutateAsync } = useMutation(
-    (value) => {
-      request(`${baseUrl}/level`, {
-        method: "POST",
-        body: { level: value },
-      });
-    },
-
-    {
-      onSuccess: () => {
-        queryClient.setQueryData("logged", { loggedIn: true });
-      },
-    }
-  );
 
   if (!data) {
     return "Loading";
   }
-  const handleSubmitLevel = (e) => {
-    e.preventDefault();
-    mutateAsync(value);
-    setValue("");
-  };
-
   if (!data.loggedIn) {
-    return (
-      <div className="App">
-        <form onSubmit={handleSubmitLevel}>
-          <label htmlFor="level">Quel est votre niveau ?</label>
-          <br />
-          <input
-            id="level"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-          />
-          <button type="submit">Valider</button>
-        </form>
-      </div>
-    );
+    return <LevelSelector />
   }
 
   if (gameIndex === null) {
     return <div>Pas de jeu réferencé dans l'url</div>;
   }
 
+  console.log(data);
   const handleSubmit = (e) => {
     e.preventDefault();
     makeMove();
