@@ -304,6 +304,12 @@ app.post("/api/submitMove", async (req, res) => {
         game_id: Number(gameIndex),
         player_id,
       });
+    } else if (move === "Pass") {
+      comm_socket.emit("game/move", {
+        game_id: Number(gameIndex),
+        player_id,
+        move: [-1, -1]
+      });
     } else {
       comm_socket.emit("game/move", {
         game_id: Number(gameIndex),
