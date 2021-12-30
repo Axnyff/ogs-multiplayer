@@ -1,3 +1,5 @@
+const fetch = require("isomorphic-fetch");
+
 const request = async (
   url,
   { method, body, headers } = {
@@ -17,4 +19,4 @@ const request = async (
   return resp.json();
 };
 
-export default request;
+module.exports = request;

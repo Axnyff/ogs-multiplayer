@@ -4,8 +4,9 @@ import request from "./request";
 import { useQuery, useQueryClient, useMutation } from "react-query";
 import "./App.css";
 import Admin from "./Admin";
-import LevelSelector from './LevelSelector';
-import { baseUrl } from './config';
+import LevelSelector from "./LevelSelector";
+import { baseUrl } from "./config";
+import Timer from './Timer';
 
 function App() {
   const { data } = useQuery(["logged"], () => request(`${baseUrl}/loggedIn`));
@@ -53,19 +54,17 @@ function App() {
     }
   );
 
-
   if (!data) {
     return "Loading";
   }
   if (!data.loggedIn) {
-    return <LevelSelector />
+    return <LevelSelector />;
   }
 
   if (gameIndex === null) {
     return <div>Pas de jeu réferencé dans l'url</div>;
   }
 
-  console.log(data);
   const handleSubmit = (e) => {
     e.preventDefault();
     makeMove();
@@ -129,7 +128,7 @@ function App() {
                 <i className="capture black" />
                 <div>
                   <strong>
-                    {dataBoard.lastPlayer === "B" && "➡️   "}
+                    {dataBoard.lastPlayer === "W" && "➡️   "}
                     {dataBoard.black}
                   </strong>
                   <div>Captures: {dataBoard._captures[0]}</div>
@@ -139,32 +138,35 @@ function App() {
                 <i className="capture white" />
                 <div>
                   <strong>
-                    {dataBoard.lastPlayer === "W" && "➡️  "}
+                    {dataBoard.lastPlayer === "B" && "➡️  "}
                     {dataBoard.white}
                   </strong>
                   <div>Captures: {dataBoard._captures[1]}</div>
                 </div>
               </div>
               <div className="margin-around">Komi: {dataBoard.komi}</div>
-              <form className="margin-bottom" onSubmit={handleSubmit}>
-                <label htmlFor="moveId">Entrez un coup</label>
-                <br />
-                <input
-                  id="moveId"
-                  value={value}
-                  onChange={(e) => setValue(e.target.value)}
-                />
-                <button type="submit">Valider</button>
-                <br />
-                <div className="flex">
-                  <button type="button" onClick={() => setValue("Pass")}>
-                    Passer
-                  </button>
-                  <button type="button" onClick={() => setValue("Resign")}>
-                    Abandonner
-                  </button>
-                </div>
-              </form>
+              {dataBoard?.isCurrentTurn && (
+                <form className="margin-bottom" onSubmit={handleSubmit}>
+                  <label htmlFor="moveId">Entrez un coup</label>
+                  <Timer key={dataBoard.moveNumber} />
+                  <br />
+                  <input
+                    id="moveId"
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                  />
+                  <button type="submit">Valider</button>
+                  <br />
+                  <div className="flex">
+                    <button type="button" onClick={() => setValue("Pass")}>
+                      Passer
+                    </button>
+                    <button type="button" onClick={() => setValue("Resign")}>
+                      Abandonner
+                    </button>
+                  </div>
+                </form>
+              )}
             </>
           )}
           {data.isAdmin && <Admin moves={dataMoves} />}

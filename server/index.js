@@ -1,4 +1,6 @@
 const express = require("express");
+const request = require("../src/request");
+const io = require("socket.io-client");
 const fetch = require("node-fetch");
 const _ = require("lodash");
 const uuid = require("node-uuid");
@@ -8,7 +10,51 @@ const app = express();
 const { Pool } = require("pg");
 const readSgf = require("./readSgf");
 
+const io_config = {
+  reconnection: true,
+  reconnectionDelay: 750,
+  reconnectionDelayMax: 10000,
+  transports: ["websocket"],
+  upgrade: false,
+};
+let player_id;
+let auth;
+const username = process.env.OGS_USERNAME;
 let pool;
+let comm_socket;
+
+request("https://online-go.com/api/v0/login", {
+  method: "POST",
+  body: {
+    username,
+    password: process.env.OGS_PASSWORD,
+  },
+}).then(async (data) => {
+  const {
+    user_jwt: jwt,
+    user: { id },
+    chat_auth,
+  } = data;
+  player_id = id;
+  auth = chat_auth;
+  comm_socket = io("wss://online-go.com", io_config);
+  await new Promise((res) => {
+    comm_socket.on("connect", () => {
+      res();
+    });
+  });
+  comm_socket.emit("authenticate", {
+    player_id,
+    username,
+    jwt,
+    auth,
+  });
+  comm_socket.emit("chat/connect", {
+    player_id,
+    username,
+    auth,
+  });
+});
 
 if (process.env.DATABASE_URL) {
   pool = new Pool({
@@ -68,13 +114,17 @@ app.get("/api/board", async (req, res) => {
   const client = await pool.connect();
   if (gameIndex) {
     const result = await client.query(
-      "select sgf from game where gameId = $1",
+      "select sgf, lastmove from game where gameId = $1",
       [gameIndex]
     );
     if (result.rows.length) {
       const sgfText = result.rows[0].sgf;
+      const moveNumber = result.rows[0].lastmove;
       try {
-        res.json(readSgf(sgfText));
+        const data = readSgf(sgfText);
+        data.isCurrentTurn =
+          data.lastPlayer === (username === data.black ? "W" : "B");
+        res.json({ ...data, moveNumber });
       } catch (e) {
         res.json(null);
       }
@@ -93,39 +143,86 @@ app.post("/api/level", (req, res) => {
   res.json({});
 });
 
-app.post("/api/index", async (req, res) => {
-  const client = await pool.connect();
-  const { gameIndex, lastMove } = req.body;
-  if (!req.session.isAdmin || !gameIndex || lastMove === undefined) {
-    res.json(null);
-  } else {
+const currentGames = {};
+const listenToGame = (game_id) => {
+  if (currentGames[game_id] || !comm_socket) {
+    return;
+  }
+  currentGames[game_id] = true;
+  comm_socket.emit("game/connect", {
+    player_id,
+    game_id,
+    chat: false,
+  });
+  comm_socket.on(`game/${game_id}/gamedata`, async (data) => {
+    const move_number = data.moves.length;
+    const client = await pool.connect();
     const result = await client.query(
       "Select lastMove from game where gameId = $1",
-      [gameIndex]
+      [game_id]
     );
     if (result.rows.length >= 1) {
       const result = await fetch(
-        `https://online-go.com/api/v1/games/${gameIndex}/sgf`
+        `https://online-go.com/api/v1/games/${game_id}/sgf`
       );
       const sgfText = await result.text();
       await client.query(
         "UPDATE game set lastmove=$1, sgf=$3 where gameId = $2",
-        [lastMove, gameIndex, sgfText]
+        [move_number, game_id, sgfText]
       );
     } else {
       const result = await fetch(
-        `https://online-go.com/api/v1/games/${gameIndex}/sgf`
+        `https://online-go.com/api/v1/games/${game_id}/sgf`
       );
       const sgfText = await result.text();
       await client.query("INSERT INTO game VALUES ($2, $1, $3)", [
-        lastMove,
-        gameIndex,
+        move_number,
+        game_id,
         sgfText,
       ]);
     }
+    client.release();
+  });
+  comm_socket.on(`game/${game_id}/move`, async (data) => {
+    const { move_number } = data;
+    const client = await pool.connect();
+    const result = await client.query(
+      "Select lastMove from game where gameId = $1",
+      [game_id]
+    );
+    if (result.rows.length >= 1) {
+      const result = await fetch(
+        `https://online-go.com/api/v1/games/${game_id}/sgf`
+      );
+      const sgfText = await result.text();
+      await client.query(
+        "UPDATE game set lastmove=$1, sgf=$3 where gameId = $2",
+        [move_number, game_id, sgfText]
+      );
+    } else {
+      const result = await fetch(
+        `https://online-go.com/api/v1/games/${game_id}/sgf`
+      );
+      const sgfText = await result.text();
+      await client.query("INSERT INTO game VALUES ($2, $1, $3)", [
+        move_number,
+        game_id,
+        sgfText,
+      ]);
+    }
+    client.release();
+  });
+};
+
+app.post("/api/start", async (req, res) => {
+  const { gameIndex } = req.body;
+  if (!req.session.isAdmin || !gameIndex) {
+    res.json(null);
+  } else {
+    const game_id = gameIndex;
+    listenToGame(game_id);
     res.json(null);
   }
-  client.release();
 });
 
 app.post("/api/move", async (req, res) => {
@@ -166,13 +263,14 @@ app.get("/api/moves", async (req, res) => {
   if (!req.session.isAdmin || !gameIndex) {
     res.json({ moves: null });
   } else {
+    listenToGame(gameIndex);
     const result = await client.query(
       "Select lastMove from game where gameId = $1",
       [gameIndex]
     );
     if (result.rows.length >= 1) {
       const result2 = await client.query(
-        "Select move from move where gameId = $1 and moveNumber = $2 AND TO_NUMBER(level, '99') >= 15",
+        "Select move from move where gameId = $1 and moveNumber = $2 AND TO_NUMBER(level, '99') <= 15",
         [gameIndex, result.rows[0].lastmove]
       );
       const moves = result2.rows.map((el) => el.move);
@@ -191,11 +289,44 @@ app.get("/api/moves", async (req, res) => {
   client.release();
 });
 
+const getOGSMove = (moveInput) => {
+  let result = "";
+  let code = moveInput.toUpperCase().charCodeAt(0);
+  if (code > 72) code -= 1;
+  if (code > 64 && code < 91) result = code - 64;
+
+  const x = result - 1;
+  const y = 19 - parseInt(moveInput.slice(1));
+  return [x, y];
+};
+
+app.post("/api/submitMove", async (req, res) => {
+  const { move, gameIndex } = req.body;
+  if (!req.session.isAdmin || !gameIndex || !move) {
+    res.json({ moves: null });
+  } else {
+    if (move === "Resign") {
+      comm_socket.emit("game/resign", {
+        game_id: Number(gameIndex),
+        player_id,
+      });
+    } else {
+      comm_socket.emit("game/move", {
+        game_id: Number(gameIndex),
+        player_id,
+        move: getOGSMove(move),
+      });
+    }
+
+    res.json(null);
+  }
+});
+
 app.get("/api/SECRET_ADMIN", (req, res) => {
   req.session.isAdmin = true;
   res.send("Ok");
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+  console.log(`App listening at http://localhost:${port}`);
 });

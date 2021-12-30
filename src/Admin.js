@@ -1,5 +1,5 @@
 import request from "./request";
-import { baseUrl } from './config';
+import { baseUrl } from "./config";
 import { useMutation, useQueryClient } from "react-query";
 
 const Admin = ({ moves }) => {
@@ -7,13 +7,28 @@ const Admin = ({ moves }) => {
   const search = document.location.search;
   const match = search.match(/game=(\d+)/);
   const gameIndex = match && match[1];
-  const { mutateAsync: setIndex } = useMutation(
-    (lastMove) =>
-      request(`${baseUrl}/index`, {
+  const { mutateAsync: startGame } = useMutation(
+    () =>
+      request(`${baseUrl}/start`, {
         method: "POST",
         body: {
           gameIndex,
-          lastMove,
+        },
+      }),
+    {
+      onSuccess: () => {
+        queryClient.refetchQueries("moves");
+      },
+    }
+  );
+
+  const { mutateAsync: submitMove } = useMutation(
+    (move) =>
+      request(`${baseUrl}/submitMove`, {
+        method: "POST",
+        body: {
+          gameIndex,
+          move,
         },
       }),
     {
@@ -28,15 +43,8 @@ const Admin = ({ moves }) => {
   }
   return (
     <div>
-      {moves.lastMove !== null ? (
-        <>
-          <div>Coup numéro: {moves.lastMove}</div>
-          <button type="button" onClick={() => setIndex(moves.lastMove + 1)}>
-            Coup suivant
-          </button>
-        </>
-      ) : (
-        <button type="button" onClick={() => setIndex(0)}>
+      {!moves.moves && (
+        <button type="button" onClick={startGame}>
           Créer la partie
         </button>
       )}
@@ -44,9 +52,12 @@ const Admin = ({ moves }) => {
         <>
           <div>Liste des coups</div>
           <ul>
-            {moves.moves.map(([move, count]) => (
+            {moves.moves.map(([move, count], index) => (
               <li key={move}>
-                {move} ({count})
+                {move} ({count}){" "}
+                <button type="button" onClick={() => submitMove(move)}>
+                  Valider
+                </button>
               </li>
             ))}
           </ul>

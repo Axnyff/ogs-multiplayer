@@ -57,7 +57,7 @@ const readSgf = (sgfStr) => {
     }
     current = current.children[0];
   }
-  return { ...board, lastMove, victoryText, komi: root.data.KM?.[0], black: root.data.PB[0], white: root.data.PW[0], lastPlayer};
+  return { ...board, lastMove, victoryText, komi: root.data.KM?.[0], black: root.data.PB[0], white: root.data.PW[0], lastPlayer: lastPlayer || "W"};
 };
 
 module.exports = readSgf;
