@@ -214,17 +214,6 @@ const listenToGame = (game_id) => {
   });
 };
 
-app.post("/api/start", async (req, res) => {
-  const { gameIndex } = req.body;
-  if (!req.session.isAdmin || !gameIndex) {
-    res.json(null);
-  } else {
-    const game_id = gameIndex;
-    listenToGame(game_id);
-    res.json(null);
-  }
-});
-
 app.post("/api/move", async (req, res) => {
   const { gameId, move } = req.body;
   const client = await pool.connect();

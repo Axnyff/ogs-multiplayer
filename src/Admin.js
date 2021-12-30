@@ -7,20 +7,6 @@ const Admin = ({ moves }) => {
   const search = document.location.search;
   const match = search.match(/game=(\d+)/);
   const gameIndex = match && match[1];
-  const { mutateAsync: startGame } = useMutation(
-    () =>
-      request(`${baseUrl}/start`, {
-        method: "POST",
-        body: {
-          gameIndex,
-        },
-      }),
-    {
-      onSuccess: () => {
-        queryClient.refetchQueries("moves");
-      },
-    }
-  );
 
   const { mutateAsync: submitMove } = useMutation(
     (move) =>
@@ -43,11 +29,6 @@ const Admin = ({ moves }) => {
   }
   return (
     <div>
-      {!moves.moves && (
-        <button type="button" onClick={startGame}>
-          Créer la partie
-        </button>
-      )}
       {moves.moves && (
         <>
           <div>Liste des coups</div>
