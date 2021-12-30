@@ -308,7 +308,7 @@ app.post("/api/submitMove", async (req, res) => {
       comm_socket.emit("game/move", {
         game_id: Number(gameIndex),
         player_id,
-        move: [-1, -1]
+        move: [-1, -1],
       });
     } else {
       comm_socket.emit("game/move", {
@@ -322,7 +322,7 @@ app.post("/api/submitMove", async (req, res) => {
   }
 });
 
-app.get("/api/SECRET_ADMIN", (req, res) => {
+app.get(`/api/${process.env.ADMIN_KEY}`, (req, res) => {
   req.session.isAdmin = true;
   res.send("Ok");
 });
