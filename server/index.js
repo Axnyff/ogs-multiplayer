@@ -1,5 +1,5 @@
 const express = require("express");
-const request = require("../src/request");
+const request = require("./request");
 const io = require("socket.io-client");
 const fetch = require("node-fetch");
 const _ = require("lodash");
