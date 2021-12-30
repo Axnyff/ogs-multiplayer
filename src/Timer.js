@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 
 const delay = 30000;
-const Timer = () => {
-  const [endTime] = useState(Date.now() + delay);
+const Timer = ({ lastMoveTime }) => {
+  const endTime = lastMoveTime + delay;
   const [remainingTime, setRemainingTime] = useState(endTime - Date.now());
   useEffect(() => {
     const intervalIndex = setInterval(() => {

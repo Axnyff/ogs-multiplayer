@@ -124,6 +124,7 @@ app.get("/api/board", async (req, res) => {
         const data = readSgf(sgfText);
         data.isCurrentTurn =
           data.lastPlayer === (username === data.black ? "W" : "B");
+        data.lastMoveTime = timers[gameIndex];
         res.json({ ...data, moveNumber });
       } catch (e) {
         res.json(null);
@@ -144,6 +145,7 @@ app.post("/api/level", (req, res) => {
 });
 
 const currentGames = {};
+const timers = {};
 const listenToGame = (game_id) => {
   if (currentGames[game_id] || !comm_socket) {
     return;
@@ -153,6 +155,9 @@ const listenToGame = (game_id) => {
     player_id,
     game_id,
     chat: false,
+  });
+  comm_socket.on(`game/${game_id}/clock`, async (data) => {
+    timers[game_id] = data.last_move;
   });
   comm_socket.on(`game/${game_id}/gamedata`, async (data) => {
     const move_number = data.moves.length;

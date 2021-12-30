@@ -148,7 +148,7 @@ function App() {
               {dataBoard?.isCurrentTurn && (
                 <form className="margin-bottom" onSubmit={handleSubmit}>
                   <label htmlFor="moveId">Entrez un coup</label>
-                  <Timer key={dataBoard.moveNumber} />
+                  <Timer key={dataBoard.lastMoveTime} lastMoveTime={dataBoard.lastMoveTime} />
                   <br />
                   <input
                     id="moveId"
